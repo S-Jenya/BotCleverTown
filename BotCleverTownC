@@ -1,0 +1,215 @@
+import telebot
+import apiai
+import json
+import os
+import requests
+import urllib.request as urllib2
+from telebot import types
+
+telebot.apihelper.proxies = {'https': 'socks5h://216.144.230.233:15993'}
+TG_TOKEN = "1243964521:AAFTqJlCx1pNIBMYDc7gmlq1-A9lbjj-Ljg"
+
+bot = telebot.TeleBot(TG_TOKEN)
+bot.remove_webhook()
+
+class Problem:
+    IsProblem = False
+    UserName = ""
+    TextProblem = ""
+    GeoProblem = ""
+    ImgProblem = ""
+
+
+def textMessage(s):
+    request = apiai.ApiAI('3c95cc79f20a4b8eadf4178ee3ecbf14').text_request()
+    request.lang = 'ru'
+    request.session_id = 'any_session_id'
+    request.query = s
+    responseJson = json.loads(request.getresponse().read().decode('utf-8'))
+    response = responseJson['result']['fulfillment']['speech']
+    if response:
+        return response
+
+
+
+
+@bot.message_handler(commands=['help'])
+def send_welcome(message):
+    bot.send_message(message.chat.id, "Мои возможности возможно специфичны, но ты посмотри "
+                                      "всё работает! ")
+
+
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    user_marker = telebot.types.ReplyKeyboardMarkup()
+    user_marker.row('Воспользоваться услугами\nумного бота')
+    user_marker.row('Помощь по\nиспользованию приложения')
+
+    bot.send_message(message.from_user.id, "Здравствуй, бдительный и сознательный гражданин! "
+                                      "Вероятно, ты заметил неприятный запах и неприглядный вид. "
+                                      "Я помогу тебе сообщить о несвоевременном вывозе мусора или "
+                                      "о несанкционированной свалке. И мы сделаем вместе город чище!",
+                     reply_markup=user_marker)
+
+    #
+    #   кнопки с дизайном №2
+    #
+    # keyboardmain = telebot.types.InlineKeyboardMarkup(row_width=10)
+    # btn1 = types.InlineKeyboardButton(text="Начать работу", callback_data="First")
+    # keyboardmain.add(btn1)
+    #
+    # bot.send_message(message.chat.id, "Здравствуй, бдительный и сознательный гражданин! "
+    #                                   "Вероятно, ты заметил неприятный запах и неприглядный вид."
+    #                                   "Я помогу тебе сообщить о несвоевременном вывозе мусора или "
+    #                                   "о несанкционированной свалке. И мы сделаем вместе город чище!",
+    #                  reply_markup=keyboardmain)
+
+def Main_menu(message):
+    user_marker = telebot.types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+    button1 = types.KeyboardButton('Городской общественный транспорт')
+    button2 = types.KeyboardButton('Медицина и здравоохранение')
+    button3= types.KeyboardButton('Услуги МФЦ')
+    button4 = types.KeyboardButton('Получить пропуск')
+    button5 = types.KeyboardButton('Сообщить о проблеме')
+    # button5 = types.KeyboardButton('Покинуть приложение')
+    user_marker.add(button1, button2, button3, button4, button5)
+    bot.send_message(message.chat.id, "Выберите необходимый вид услуги", reply_markup=user_marker)
+
+def My_prop(message):
+    user_marker = telebot.types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+    button1 = types.KeyboardButton('Узнать необходимый перечень материалов')
+    button2 = types.KeyboardButton('Порядок и время приёма граждан')
+    button3 = types.KeyboardButton('Методические рекомендации')
+    button4 = types.KeyboardButton('Главное меню')
+    user_marker.add(button1, button2, button3, button4)
+    bot.send_message(message.chat.id, "Выберите необходимый вид услуги", reply_markup=user_marker)
+
+@bot.message_handler(content_types=['text'])
+def handle_text(message):
+    user_marker = telebot.types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+
+    if message.text == 'Помощь по\nиспользованию приложения':
+        bot.send_message(message.chat.id, "Мои возможности возможно специфичны, но ты посмотри всё работает! ")
+
+    elif message.text == 'Воспользоваться услугами\nумного бота':
+        Main_menu(message)
+
+    elif message.text == 'Получить пропуск':
+        My_prop(message)
+
+    elif message.text == 'Порядок и время приёма граждан':
+        # directory = 'D:\MyPython\MyFirstBot\img'
+        # all_files_in_directory = os.listdir(directory)
+        # bot.send_chat_action(message.from_user.id, 'upload_photo')
+
+        url = 'https://sun9-33.userapi.com/CKVtv_EeBp7ZK3KqI7jgKLWHU_6X61kq7i63WA/cwCafeKORRk.jpg'
+        urllib2.urlretrieve(url, 'Raspis.jpg')
+        img = open('Raspis.jpg', 'rb')
+        bot.send_chat_action(message.from_user.id, 'upload_photo')
+        bot.send_photo(message.from_user.id, img)
+        img.close()
+
+    elif message.text == 'Сообщить о проблеме':
+        user_problem = telebot.types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+        button1 = types.KeyboardButton('Неубранный мусор')
+        button2 = types.KeyboardButton('Проблема ЖКХ')
+        button3 = types.KeyboardButton('Бродячие животные')
+        button4 = types.KeyboardButton('COVID-19')
+        button5 = types.KeyboardButton('Прочее')
+        button6 = types.KeyboardButton('Назад')
+        user_problem.add(button1, button2, button3, button4, button5, button6)
+        bot.send_message(message.chat.id, "Выберите проблему", reply_markup=user_problem)
+
+    elif message.text == 'Прочее':
+        bot.send_message(message.chat.id, "В будущем мы предоставим вам возможность для отправки нам сообщения")
+
+    elif message.text == 'Главное меню' or message.text == 'В главное меню':
+        Main_menu(message)
+
+    # elif message.text == '111':
+    #     keyboard_now = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+    #     button1 = types.KeyboardButton(text="")
+    #     button2 = types.KeyboardButton(text="Главное меню")
+    #     keyboard_now.add(button1, button2)
+    #     bot.send_message(message.chat.id, "Указать адрес проблемы", reply_markup=keyboard_now)
+
+    elif message.text == 'Неубранный мусор':
+        keyboardGeo = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+        button1 = types.KeyboardButton(text="Указать нужную точку на карте", request_location=True)
+        button2 = types.KeyboardButton(text="Отправить текущее местоположение", request_location=True)
+        keyboardGeo.add(button1, button2)
+        bot.send_message(message.chat.id, "Укажите адрес проблемы", reply_markup=keyboardGeo)
+
+    elif message.text == 'Осписать суть пробелмы':
+        bot.send_message(message.chat.id, "Описание проблемы:")
+
+    elif message.text == 'Отправить отв.сотруднику':
+        bot.send_message(message.chat.id, "Заяка отправлена")
+        Main_menu(message)
+
+    elif message.text == 'Ужасный запах в радиусе 10 метров':
+        bot.send_message(message.chat.id, "Принято!")
+
+    elif Problem.IsProblem == True:
+        Problem.UserName = message.from_user.username
+        Problem.TextProblem = message.text
+        print(Problem.UserName)
+        print(Problem.TextProblem)
+        print(Problem.GeoProblem)
+        print(Problem.ImgProblem)
+        bot.send_message(message.chat.id, "Спасибо за бдительность!\n"
+                                          "Ваше обращение будет рассмотрено в ближайшее время")
+
+        url = "https://telegg.ru/orig/bot"
+        url += TG_TOKEN
+        method = url + "/sendMessage"
+
+        # r = requests.post(method, data={
+        #     "chat_id": "@Minchik8",
+        #     "text": "Problem.UserName"
+        # })
+        #
+        # if r.status_code != 200:
+        #     raise Exception("post_text error")
+
+        Problem.IsProblem = False
+        Main_menu(message)
+
+    # elif message.text == 'Транспорт и дороги':
+        # bot.send_chat_action(message.from_user.id, 'find_location')
+        # bot.send_location(message.from_user.id, 54.3265231, 42.2362145)
+
+    else:
+        # Main_menu(message)
+        bot.send_message(message.chat.id, textMessage(message.text))
+
+
+@bot.message_handler(commands=["geo"])
+def geo(message):
+    keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+
+    button_geo = types.KeyboardButton(text="Отправить местоположение", request_location=True)
+    keyboard.add(button_geo)
+    bot.send_message(message.chat.id, "Привет! Нажми на кнопку и передай мне свое местоположение", reply_markup=keyboard)
+
+
+
+@bot.message_handler(content_types=["location"])
+def location(message):
+    user_marker = telebot.types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+
+    if message.location is not None:
+        # print("latitude: %s; longitude: %s" % (message.location.latitude, message.location.longitude))
+        Problem.GeoProblem = message.location
+        button1 = types.KeyboardButton('Назад')
+        button2 = types.KeyboardButton('В главное меню')
+        user_marker.add(button1, button2)
+        Problem.IsProblem = True
+        bot.send_message(message.chat.id, "Ваше местоположение определено!", reply_markup=user_marker)
+        bot.send_message(message.chat.id, "Изложите суть проблемы с поясняющими фотографиями"
+                                          " для дальнейшего рассмотрения обращения", reply_markup=user_marker)
+
+
+
+bot.polling()
+
