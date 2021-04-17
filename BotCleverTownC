@@ -7,7 +7,7 @@ import urllib.request as urllib2
 from telebot import types
 
 telebot.apihelper.proxies = {'https': 'socks5h://216.144.230.233:15993'}
-TG_TOKEN = "1243964521:AAFTqJlCx1pNIBMYDc7gmlq1-A9lbjj-Ljg"
+TG_TOKEN = "1243964521:AAFTqJlCx1pNIBMYDc7gmlq1-A9lbjj-Lj"
 
 bot = telebot.TeleBot(TG_TOKEN)
 bot.remove_webhook()
